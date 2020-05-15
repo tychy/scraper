@@ -1,0 +1,3 @@
+scraper.db.sqlite3
+scraper.config.local_settings.py
+.env

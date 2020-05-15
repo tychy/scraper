@@ -1,0 +1,47 @@
+version: '3.7'
+
+services:
+    # サービス名は自由に設定
+    django:
+        # scraperディレクトリの中から`Dockerfile`を探す
+        build: ./scraper
+        # サービス起動後に入力されるコマンドを設定
+        command: python manage.py runserver 0.0.0.0:8000
+        # データを永続化させる場合の設定。`host:container`でパスを記載
+        volumes:
+            - ./scraper/:/usr/src/scraper/
+        # 開放するポートを指定。`host:container`でポートを記載
+        ports:
+            - 8000:8000
+        # 環境変数を指定
+        environment:
+            # 1ならデバックモード
+            - DEBUG=1
+            - SECRET_KEY=3e(-+dd823l*v=u_w7i!2-phfqhjz9l%^xhr3+cr04l505y4er
+            - DATABASE_ENGINE=django.db.backends.postgresql
+            - DATABASE_DB=django_db
+            - DATABASE_USER=django_db_user
+            - DATABASE_PASSWORD=password123
+            - DATABASE_HOST=postgres
+            - DATABASE_PORT=5432
+        # 接続するサービスを指定
+        depends_on:
+            - postgres
+
+    postgres:
+        # 公式からイメージをpull
+        image: postgres:11.4-alpine
+        # データベースの永続化
+        # ホストのディレクトリにマウントしない様に、先頭に`./`をつけない
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        # su権限を持つ、指定されたユーザーと同じ名前のデータベースを作成
+        # valueはdjangoサービスで指定したものと同じ様に記載する
+        environment:
+            - POSTGRES_USER=django_db_user
+            - POSTGRES_PASSWORD=password123
+            - POSTGRES_DB=django_db
+
+# トップレベルに書く「名前付きvolumes」は複数サービスから参照できる
+volumes:
+    postgres_data:
